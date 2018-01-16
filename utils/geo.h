@@ -1,5 +1,5 @@
 //
-// Some class template for geometry primitives (point, interval, box)
+// Some class templates for geometry primitives (point, interval, box)
 //
 
 #pragma once

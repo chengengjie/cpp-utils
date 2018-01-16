@@ -1,5 +1,5 @@
 //
-// A pretty printing library for C++ STL containers
+// Pretty printing for C++ STL containers
 //
 // Usage: operator<< will "just work" for most STL containers, for example,
 //      std::vector<int> nums = {1, 2, 10};
