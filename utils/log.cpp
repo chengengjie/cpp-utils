@@ -3,7 +3,7 @@
 #include <iomanip>
 #include <sstream>
 
-using namespace std;
+namespace utils {
 
 timer::timer() { start(); }
 void timer::start() { _start = clock::now(); }
@@ -11,17 +11,16 @@ double timer::elapsed() const { return std::chrono::duration<double>(clock::now(
 
 timer tstamp;
 
-ostream& operator<<(ostream& os, const timer& t) {
-    os << "[" << setprecision(3) << setw(8) << fixed << t.elapsed() << "] ";
+std::ostream& operator<<(std::ostream& os, const timer& t) {
+    std::ostringstream oss; // seperate the impact of format
+    oss << "[" << std::setprecision(3) << std::setw(8) << std::fixed << t.elapsed() << "] ";
+    os << oss.str();
     return os;
-}
-string to_string(const timer& t) {
-    ostringstream oss;
-    oss << t;
-    return oss.str();
 }
 
-ostream& log(ostream& os) {
-    os << to_string(tstamp);
+std::ostream& log(std::ostream& os) {
+    os << tstamp;
     return os;
+}
+
 }

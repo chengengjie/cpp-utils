@@ -7,9 +7,8 @@
 #include <cassert>
 #include <iostream>
 #include <limits>
-#include <cmath>
 
-namespace geo {
+namespace utils {
 
 // Point template
 template <typename T>
@@ -24,12 +23,8 @@ public:
         assert(d == 0 || d == 1);
         return (d == 0 ? x : y);
     }
-    PointT operator+(const PointT& rhs) {
-        return PointT(x + rhs.x, y + rhs.y);
-    }
-    PointT operator/(T divisor) {
-        return PointT(x/divisor, y/divisor);
-    }
+    PointT operator+(const PointT& rhs) { return PointT(x + rhs.x, y + rhs.y); }
+    PointT operator/(T divisor) { return PointT(x / divisor, y / divisor); }
     PointT& operator+=(const PointT& rhs) {
         x += rhs.x;
         y += rhs.y;
@@ -120,17 +115,16 @@ public:
     IntervalT IntersectWith(const IntervalT& rhs) const {
         return IntervalT(std::max(low_, rhs.low_), std::min(high_, rhs.high_));
     }
-    bool HasIntersectWith(const IntervalT& rhs) const {
-        return IntersectWith(rhs).IsValid();
-    }
-    bool HasStrictIntersectWith(const IntervalT& rhs) const {
-        return IntersectWith(rhs).IsStrictValid();
-    }
+    bool HasIntersectWith(const IntervalT& rhs) const { return IntersectWith(rhs).IsValid(); }
+    bool HasStrictIntersectWith(const IntervalT& rhs) const { return IntersectWith(rhs).IsStrictValid(); }
     // get nearest point to val
     T GetNearestPoint(T val) const {
-        if (val < low_) return low_;
-        else if (val < high_) return val;
-        else return high_;
+        if (val < low_)
+            return low_;
+        else if (val < high_)
+            return val;
+        else
+            return high_;
     }
 
 private:
@@ -152,6 +146,7 @@ public:
     BoxT(const PointT<T>& pt) { Set(pt); }
     BoxT(T lx, T ly, T hx, T hy) { Set(lx, ly, hx, hy); }
     BoxT(const IntervalT<T>& x, const IntervalT<T>& y) { Set(x, y); }
+    BoxT(const PointT<T>& low, const PointT<T>& high) { Set(low, high); }
 
     // Setters
     T& lx() { return x_.low(); }
@@ -170,9 +165,7 @@ public:
         x_.Set(x);
         y_.Set(y);
     }
-    void Set(const PointT<T>& pt) {
-        Set(pt.x, pt.y);
-    }
+    void Set(const PointT<T>& pt) { Set(pt.x, pt.y); }
     void Set(T lx, T ly, T hx, T hy) {
         x_.Set(lx, hx);
         y_.Set(ly, hy);
@@ -181,12 +174,13 @@ public:
         x_ = x;
         y_ = y;
     }
+    void Set(const PointT<T>& low, const PointT<T>& high) { Set(low.x, low.y, high.x, high.y); }
 
     // Two types of boxes: normal & degenerated (line or point)
     // is valid box
     bool IsValid() const { return x_.IsValid() && y_.IsValid(); }
     // is strictly valid box (excluding degenerated ones)
-    bool IsStrictValid() const { return x_.IsStrictValid() && y_.IsStrictValid(); } // tighter
+    bool IsStrictValid() const { return x_.IsStrictValid() && y_.IsStrictValid(); }  // tighter
 
     // Getters
     T lx() const { return x_.low(); }
@@ -197,7 +191,8 @@ public:
     T cy() const { return y_.center(); }
     T x() const { return x_.range(); }
     T y() const { return y_.range(); }
-    T hp() const { return x() + y(); } // half perimeter
+    T hp() const { return x() + y(); }  // half perimeter
+    T area() const { return x() * y(); }
     const IntervalT<T>& operator[](unsigned i) const {
         assert(i == 0 || i == 1);
         return (i == 0) ? x_ : y_;
@@ -212,24 +207,14 @@ public:
         x_.FastUpdate(x);
         y_.FastUpdate(y);
     }
-    void Update(const PointT<T>& pt) {
-        Update(pt.x, pt.y);
-    }
-    void FastUpdate(const PointT<T>& pt) {
-        FastUpdate(pt.x, pt.y);
-    }
+    void Update(const PointT<T>& pt) { Update(pt.x, pt.y); }
+    void FastUpdate(const PointT<T>& pt) { FastUpdate(pt.x, pt.y); }
 
     // Geometric Query/Update
-    BoxT UnionWith(const BoxT& rhs) const {
-        return BoxT(x_.UnionWith(rhs.x_), y_.UnionWith(rhs.y_));
-    }
-    BoxT IntersectWith(const BoxT& rhs) const {
-        return BoxT(x_.IntersectWith(rhs.x_), y_.IntersectWith(rhs.y_));
-    }
-    bool HasIntersectWith(const BoxT& rhs) const {
-        return IntersectWith(rhs).IsValid();
-    }
-    bool HasStrictIntersectWith(const BoxT& rhs) const { // tighter
+    BoxT UnionWith(const BoxT& rhs) const { return BoxT(x_.UnionWith(rhs.x_), y_.UnionWith(rhs.y_)); }
+    BoxT IntersectWith(const BoxT& rhs) const { return BoxT(x_.IntersectWith(rhs.x_), y_.IntersectWith(rhs.y_)); }
+    bool HasIntersectWith(const BoxT& rhs) const { return IntersectWith(rhs).IsValid(); }
+    bool HasStrictIntersectWith(const BoxT& rhs) const {  // tighter
         return IntersectWith(rhs).IsStrictValid();
     }
     PointT<T> GetNearestPoint(const PointT<T>& pt) {
@@ -254,4 +239,4 @@ public:
     bool IsRectilinear() const { return BoxT<T>::x() == 0 || BoxT<T>::y() == 0; }
 };
 
-}  // namespace geo
+}  // namespace utils

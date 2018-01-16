@@ -15,8 +15,12 @@
 #include <iostream>
 #include <string>
 
+namespace utils {
+
+// 1. Timer
+
 class timer {
-    using clock = std::chrono::steady_clock;
+    using clock = std::chrono::high_resolution_clock;
 
 private:
     clock::time_point _start;
@@ -28,9 +32,8 @@ public:
 };
 
 std::ostream& operator<<(std::ostream& os, const timer& t);
-std::string to_string(const timer& t);
 
-std::ostream& log(std::ostream& os = std::cout);
+// 2. Easy print
 
 // print(a, b, c)
 inline void print() { std::cout << std::endl; }
@@ -38,4 +41,16 @@ template <typename T, typename... TAIL>
 void print(const T& t, TAIL... tail) {
     std::cout << t << ' ';
     print(tail...);
+}
+
+// "log() << a << b << c" puts a time stamp in beginning
+std::ostream& log(std::ostream& os = std::cout);
+
+// "printlog(a, b, c)" puts a time stamp in beginning
+template <typename... T>
+void printlog(T... t) {
+    log();
+    print(t...);
+}
+
 }
