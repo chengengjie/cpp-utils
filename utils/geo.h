@@ -61,9 +61,8 @@ inline T LInfDist(const PointT<T>& pt1, const PointT<T>& pt2) {
 template <typename T>
 class IntervalT {
 public:
-    IntervalT() { Set(); }
-    IntervalT(T val) { Set(val); }
-    IntervalT(T low, T high) { Set(low, high); }
+    template<typename... Args>
+    IntervalT(Args... params) { Set(params...); }
 
     // Setters
     T& low() { return low_; }
@@ -141,12 +140,8 @@ inline std::ostream& operator<<(std::ostream& os, const IntervalT<T>& interval) 
 template <typename T>
 class BoxT {
 public:
-    BoxT() { Set(); }
-    BoxT(T x, T y) { Set(x, y); }
-    BoxT(const PointT<T>& pt) { Set(pt); }
-    BoxT(T lx, T ly, T hx, T hy) { Set(lx, ly, hx, hy); }
-    BoxT(const IntervalT<T>& x, const IntervalT<T>& y) { Set(x, y); }
-    BoxT(const PointT<T>& low, const PointT<T>& high) { Set(low, high); }
+    template<typename... Args>
+    BoxT(Args... params) { Set(params...); }
 
     // Setters
     T& lx() { return x_.low(); }
