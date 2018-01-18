@@ -36,7 +36,7 @@ public:
         return *this;
     }
     bool operator==(const PointT& rhs) const { return x == rhs.x && y == rhs.y; }
-    bool operator!=(const PointT& rhs) const { return x != rhs.x || y != rhs.y; }
+    bool operator!=(const PointT& rhs) const { return !(*this == rhs); }
 };
 
 template <typename T>
@@ -108,7 +108,9 @@ public:
     // Geometric Query/Update
     // interval/range of union (not union of intervals)
     IntervalT UnionWith(const IntervalT& rhs) const {
-        return IntervalT(std::min(low_, rhs.low_), std::max(high_, rhs.high_));
+        if (!IsValid()) return *this;
+        else if (!rhs.IsValid()) return rhs;
+        else return IntervalT(std::min(low_, rhs.low_), std::max(high_, rhs.high_));
     }
     // may return an invalid interval (as empty intersection)
     IntervalT IntersectWith(const IntervalT& rhs) const {
@@ -125,6 +127,11 @@ public:
         else
             return high_;
     }
+
+    bool operator==(const IntervalT& rhs) const {
+        return (!IsValid() && !rhs.IsValid()) || (low_ == rhs.low_ && high_ == rhs.high_); 
+    }
+    bool operator!=(const IntervalT& rhs) const { return !(*this == rhs); }
 
 private:
     T low_, high_;
@@ -215,6 +222,11 @@ public:
     PointT<T> GetNearestPoint(const PointT<T>& pt) {
         return PointT<T>(x_.GetNearestPoint(pt.x), y_.GetNearestPoint(pt.y));
     }
+
+    bool operator==(const BoxT& rhs) const {
+        return (x_ == rhs.x) && (y_ == rhs.y_); 
+    }
+    bool operator!=(const BoxT& rhs) const { return !(*this == rhs); }
 
 private:
     using limits = std::numeric_limits<T>;
