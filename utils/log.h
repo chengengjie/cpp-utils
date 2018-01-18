@@ -33,7 +33,14 @@ public:
 
 std::ostream& operator<<(std::ostream& os, const timer& t);
 
-// 2. Easy print
+// 2. Memory
+
+class mem_use {
+public:
+    static double get();  // MB
+};
+
+// 3. Easy print
 
 // print(a, b, c)
 inline void print() { std::cout << std::endl; }

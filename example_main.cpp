@@ -26,10 +26,14 @@ int main() {
     utils::print(a, b, c);
     utils::log() << "From now on, there is a time stamp in each line of log" << std::endl;
     utils::printlog("E.g.,", a, b, c);
+    int memStart = utils::mem_use::get();
+    std::vector<int> manyNums(1000000);
+    utils::printlog("A vector of 1000000 int takes", utils::mem_use::get() - memStart, "MB memory");
 
     // 4. geo + prettyprint + log
+    utils::printlog();
     std::vector<utils::PointT<double>> pts = {{1.2, 2.3}, {3.4, 4.5}, {5.4, 4.3}, {3.2, 2.1}};
-    printlog("There are", pts.size(), "points:", pts);
+    utils::printlog("There are", pts.size(), "points:", pts);
     utils::timer timeIt;
     utils::BoxT<double> bound;
     for (int i = 0; i < 100000; ++i) {
