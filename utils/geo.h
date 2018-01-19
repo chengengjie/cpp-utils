@@ -177,6 +177,7 @@ public:
         y_ = y;
     }
     void Set(const PointT<T>& low, const PointT<T>& high) { Set(low.x, low.y, high.x, high.y); }
+    void Set(const BoxT& box) { *this = box; } // TODO: how to detect in ctor?
 
     // Two types of boxes: normal & degenerated (line or point)
     // is valid box
