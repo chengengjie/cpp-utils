@@ -122,20 +122,26 @@ public:
     bool HasStrictIntersectWith(const IntervalT& rhs) const { return IntersectWith(rhs).IsStrictValid(); }
     // get nearest point to val (assume valid intervals)
     T GetNearestPointTo(T val) const {
-        if (val < low)
+        if (val <= low) {
             return low;
-        else if (val < high)
-            return val;
-        else
+        }
+        else if (val >= high) {
             return high;
+        }
+        else {
+            return val;
+        }
     }
     IntervalT GetNearestPointsTo(IntervalT val) const {
-        if (val.high <= low)
+        if (val.high <= low) {
             return {low};
-        else if (val.low >= high)
+        }
+        else if (val.low >= high) {
             return {high};
-        else
+        }
+        else {
             return IntersectWith(val);
+        }
     }
 
     // Operators
@@ -150,14 +156,19 @@ public:
     }
 };
 
-// Distance between points
+// Distance between intervals/points (assume valid intervals)
+template <typename T>
+inline T Dist(const IntervalT<T>& intvl, const T val) {
+    return std::abs(intvl.GetNearestPointTo(val) - val);
+}
 template <typename T>
 inline T Dist(const IntervalT<T>& int1, const IntervalT<T>& int2) {
-    if (!int1.IsValid() || !int2.IsValid()) {
-        return std::numeric_limits<T>::max();
-    } else {
-        return std::max(0, std::max(int1.low - int2.high, int2.low - int1.high));
-    }
+    if (int1.high <= int2.low)
+        return int2.low - int1.high;
+    else if (int1.low >= int2.high)
+        return int1.low - int2.high;
+    else
+        return 0;
 }
 
 // Box template
@@ -235,16 +246,14 @@ public:
     void FastUpdate(const PointT<T>& pt) { FastUpdate(pt.x, pt.y); }
 
     // Geometric Query/Update
-    BoxT UnionWith(const BoxT& rhs) const { return BoxT(x.UnionWith(rhs.x), y.UnionWith(rhs.y)); }
-    BoxT IntersectWith(const BoxT& rhs) const { return BoxT(x.IntersectWith(rhs.x), y.IntersectWith(rhs.y)); }
+    BoxT UnionWith(const BoxT& rhs) const { return {x.UnionWith(rhs.x), y.UnionWith(rhs.y)}; }
+    BoxT IntersectWith(const BoxT& rhs) const { return {x.IntersectWith(rhs.x), y.IntersectWith(rhs.y)}; }
     bool HasIntersectWith(const BoxT& rhs) const { return IntersectWith(rhs).IsValid(); }
     bool HasStrictIntersectWith(const BoxT& rhs) const {  // tighter
         return IntersectWith(rhs).IsStrictValid();
     }
-    PointT<T> GetNearestPointTo(const PointT<T>& pt) {
-        return PointT<T>(x.GetNearestPoint(pt.x), y.GetNearestPoint(pt.y));
-    }
-    BoxT GetNearestPointsTo(BoxT val) const { return {x.GetNearestPoints(val.x), y.GetNearestPoints(val.y)}; }
+    PointT<T> GetNearestPointTo(const PointT<T>& pt) { return {x.GetNearestPointTo(pt.x), y.GetNearestPointTo(pt.y)}; }
+    BoxT GetNearestPointsTo(BoxT val) const { return {x.GetNearestPointsTo(val.x), y.GetNearestPointsTo(val.y)}; }
 
     bool operator==(const BoxT& rhs) const { return (x == rhs.x) && (y == rhs.y); }
     bool operator!=(const BoxT& rhs) const { return !(*this == rhs); }
@@ -254,6 +263,16 @@ public:
         return os;
     }
 };
+
+// Manhattan distance between boxes/points (assume valid boxes)
+template <typename T>
+inline T Dist(const BoxT<T>& box, const PointT<T>& point) {
+    return Dist(box.x, point.x) + Dist(box.y, point.y);
+}
+template <typename T>
+inline T Dist(const BoxT<T>& box1, const BoxT<T>& box2) {
+    return Dist(box1.x, box2.x) + Dist(box1.y, box2.y);
+}
 
 template <typename T>
 class SegmentT : public BoxT<T> {
