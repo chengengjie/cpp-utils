@@ -18,7 +18,7 @@ public:
     PointT(T xx = std::numeric_limits<T>::max(), T yy = std::numeric_limits<T>::max()) : x(xx), y(yy) {}
     bool IsValid() { return x != std::numeric_limits<T>::max() && y != std::numeric_limits<T>::max(); }
 
-    // operators
+    // Operators
     T& operator[](unsigned d) {
         assert(d == 0 || d == 1);
         return (d == 0 ? x : y);
@@ -38,7 +38,7 @@ public:
     bool operator==(const PointT& rhs) const { return x == rhs.x && y == rhs.y; }
     bool operator!=(const PointT& rhs) const { return !(*this == rhs); }
 
-    friend inline std::ostream& operator<<(std::ostream& os, const PointT<T>& pt) {
+    friend inline std::ostream& operator<<(std::ostream& os, const PointT& pt) {
         os << "(" << pt.x << ", " << pt.y << ")";
         return os;
     }
@@ -122,8 +122,8 @@ public:
     }
     bool HasIntersectWith(const IntervalT& rhs) const { return IntersectWith(rhs).IsValid(); }
     bool HasStrictIntersectWith(const IntervalT& rhs) const { return IntersectWith(rhs).IsStrictValid(); }
-    // get nearest point to val
-    T GetNearestPoint(T val) const {
+    // get nearest point to val (assume valid intervals)
+    T GetNearestPointTo(T val) const {
         if (val < low_)
             return low_;
         else if (val < high_)
@@ -131,7 +131,7 @@ public:
         else
             return high_;
     }
-    IntervalT GetNearestPoints(IntervalT val) const {
+    IntervalT GetNearestPointsTo(IntervalT val) const {
         if (val.high_ <= low_)
             return {low_};
         else if (val.low_ >= high_)
@@ -140,6 +140,7 @@ public:
             return IntersectWith(val);
     }
 
+    // Operators
     bool operator==(const IntervalT& rhs) const {
         return (!IsValid() && !rhs.IsValid()) || (low_ == rhs.low_ && high_ == rhs.high_);
     }
@@ -153,6 +154,17 @@ public:
 private:
     T low_, high_;
 };
+
+// Distance between points
+template <typename T>
+inline T Dist(const IntervalT<T>& int1, const IntervalT<T>& int2) {
+    if (!int1.IsValid() || !int2.IsValid()) {
+        return std::numeric_limits<T>::max();
+    }
+    else {
+        return std::max(0, std::max(int1.low() - int2.high(), int2.low() - int1.high()));
+    }
+}
 
 // Box template
 template <typename T>
@@ -233,10 +245,10 @@ public:
     bool HasStrictIntersectWith(const BoxT& rhs) const {  // tighter
         return IntersectWith(rhs).IsStrictValid();
     }
-    PointT<T> GetNearestPoint(const PointT<T>& pt) {
+    PointT<T> GetNearestPointTo(const PointT<T>& pt) {
         return PointT<T>(x_.GetNearestPoint(pt.x), y_.GetNearestPoint(pt.y));
     }
-    BoxT GetNearestPoints(BoxT val) const { return {x_.GetNearestPoints(val.x), y_.GetNearestPoints(val.y)}; }
+    BoxT GetNearestPointsTo(BoxT val) const { return {x_.GetNearestPoints(val.x), y_.GetNearestPoints(val.y)}; }
 
     bool operator==(const BoxT& rhs) const { return (x_ == rhs.x) && (y_ == rhs.y_); }
     bool operator!=(const BoxT& rhs) const { return !(*this == rhs); }
