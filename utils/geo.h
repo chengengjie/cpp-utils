@@ -37,13 +37,12 @@ public:
     }
     bool operator==(const PointT& rhs) const { return x == rhs.x && y == rhs.y; }
     bool operator!=(const PointT& rhs) const { return !(*this == rhs); }
-};
 
-template <typename T>
-inline std::ostream& operator<<(std::ostream& os, const PointT<T>& pt) {
-    os << "(" << pt.x << ", " << pt.y << ")";
-    return os;
-}
+    friend inline std::ostream& operator<<(std::ostream& os, const PointT<T>& pt) {
+        os << "(" << pt.x << ", " << pt.y << ")";
+        return os;
+    }
+};
 
 // Manhattan distance between points
 template <typename T>
@@ -146,15 +145,14 @@ public:
     }
     bool operator!=(const IntervalT& rhs) const { return !(*this == rhs); }
 
+    friend inline std::ostream& operator<<(std::ostream& os, const IntervalT<T>& interval) {
+        os << "(" << interval.low() << ", " << interval.high() << ")";
+        return os;
+    }
+
 private:
     T low_, high_;
 };
-
-template <typename T>
-inline std::ostream& operator<<(std::ostream& os, const IntervalT<T>& interval) {
-    os << "(" << interval.low() << ", " << interval.high() << ")";
-    return os;
-}
 
 // Box template
 template <typename T>
@@ -243,16 +241,15 @@ public:
     bool operator==(const BoxT& rhs) const { return (x_ == rhs.x) && (y_ == rhs.y_); }
     bool operator!=(const BoxT& rhs) const { return !(*this == rhs); }
 
+    friend inline std::ostream& operator<<(std::ostream& os, const BoxT<T>& box) {
+        os << "[x: " << box[0] << ", y: " << box[1] << "]";
+        return os;
+    }
+
 private:
     using limits = std::numeric_limits<T>;
     IntervalT<T> x_, y_;
 };
-
-template <typename T>
-inline std::ostream& operator<<(std::ostream& os, const BoxT<T>& box) {
-    os << "[x: " << box[0] << ", y: " << box[1] << "]";
-    return os;
-}
 
 template <typename T>
 class SegmentT : public BoxT<T> {
