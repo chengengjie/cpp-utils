@@ -60,51 +60,49 @@ inline T LInfDist(const PointT<T>& pt1, const PointT<T>& pt2) {
 template <typename T>
 class IntervalT {
 public:
+    T low, high;
+
     template <typename... Args>
     IntervalT(Args... params) {
         Set(params...);
     }
 
     // Setters
-    T& low() { return low_; }
-    T& high() { return high_; }
     void Set() {
-        low_ = std::numeric_limits<T>::max();
-        high_ = std::numeric_limits<T>::lowest();
+        low = std::numeric_limits<T>::max();
+        high = std::numeric_limits<T>::lowest();
     }
     void Set(T val) {
-        low_ = val;
-        high_ = val;
+        low = val;
+        high = val;
     }
-    void Set(T low, T high) {
-        low_ = low;
-        high_ = high;
+    void Set(T lo, T hi) {
+        low = lo;
+        high = hi;
     }
 
     // Getters
-    T low() const { return low_; }
-    T high() const { return high_; }
-    T center() const { return (high_ + low_) / 2; }
-    T range() const { return high_ - low_; }
+    T center() const { return (high + low) / 2; }
+    T range() const { return high - low; }
 
     // Update
     // Update() is always safe, FastUpdate() assumes existing values
     void Update(T newVal) {
-        if (newVal < low_) low_ = newVal;
-        if (newVal > high_) high_ = newVal;
+        if (newVal < low) low = newVal;
+        if (newVal > high) high = newVal;
     }
     void FastUpdate(T newVal) {
-        if (newVal < low_)
-            low_ = newVal;
-        else if (newVal > high_)
-            high_ = newVal;
+        if (newVal < low)
+            low = newVal;
+        else if (newVal > high)
+            high = newVal;
     }
 
     // Two types of intervals: 1. normal, 2. degenerated (i.e., point)
     // is valid interval (i.e., valid closed interval)
-    bool IsValid() const { return low_ <= high_; }
+    bool IsValid() const { return low <= high; }
     // is strictly valid interval (excluding degenerated ones, i.e., valid open interval)
-    bool IsStrictValid() const { return low_ < high_; }
+    bool IsStrictValid() const { return low < high; }
 
     // Geometric Query/Update
     // interval/range of union (not union of intervals)
@@ -114,45 +112,42 @@ public:
         else if (!rhs.IsValid())
             return rhs;
         else
-            return IntervalT(std::min(low_, rhs.low_), std::max(high_, rhs.high_));
+            return IntervalT(std::min(low, rhs.low), std::max(high, rhs.high));
     }
     // may return an invalid interval (as empty intersection)
     IntervalT IntersectWith(const IntervalT& rhs) const {
-        return IntervalT(std::max(low_, rhs.low_), std::min(high_, rhs.high_));
+        return IntervalT(std::max(low, rhs.low), std::min(high, rhs.high));
     }
     bool HasIntersectWith(const IntervalT& rhs) const { return IntersectWith(rhs).IsValid(); }
     bool HasStrictIntersectWith(const IntervalT& rhs) const { return IntersectWith(rhs).IsStrictValid(); }
     // get nearest point to val (assume valid intervals)
     T GetNearestPointTo(T val) const {
-        if (val < low_)
-            return low_;
-        else if (val < high_)
+        if (val < low)
+            return low;
+        else if (val < high)
             return val;
         else
-            return high_;
+            return high;
     }
     IntervalT GetNearestPointsTo(IntervalT val) const {
-        if (val.high_ <= low_)
-            return {low_};
-        else if (val.low_ >= high_)
-            return {high_};
+        if (val.high <= low)
+            return {low};
+        else if (val.low >= high)
+            return {high};
         else
             return IntersectWith(val);
     }
 
     // Operators
     bool operator==(const IntervalT& rhs) const {
-        return (!IsValid() && !rhs.IsValid()) || (low_ == rhs.low_ && high_ == rhs.high_);
+        return (!IsValid() && !rhs.IsValid()) || (low == rhs.low && high == rhs.high);
     }
     bool operator!=(const IntervalT& rhs) const { return !(*this == rhs); }
 
     friend inline std::ostream& operator<<(std::ostream& os, const IntervalT<T>& interval) {
-        os << "(" << interval.low() << ", " << interval.high() << ")";
+        os << "(" << interval.low << ", " << interval.high << ")";
         return os;
     }
-
-private:
-    T low_, high_;
 };
 
 // Distance between points
@@ -160,9 +155,8 @@ template <typename T>
 inline T Dist(const IntervalT<T>& int1, const IntervalT<T>& int2) {
     if (!int1.IsValid() || !int2.IsValid()) {
         return std::numeric_limits<T>::max();
-    }
-    else {
-        return std::max(0, std::max(int1.low() - int2.high(), int2.low() - int1.high()));
+    } else {
+        return std::max(0, std::max(int1.low - int2.high, int2.low - int1.high));
     }
 }
 
@@ -170,97 +164,95 @@ inline T Dist(const IntervalT<T>& int1, const IntervalT<T>& int2) {
 template <typename T>
 class BoxT {
 public:
+    IntervalT<T> x, y;
+
     template <typename... Args>
     BoxT(Args... params) {
         Set(params...);
     }
 
     // Setters
-    T& lx() { return x_.low(); }
-    T& ly() { return y_.low(); }
-    T& hy() { return y_.high(); }
-    T& hx() { return x_.high(); }
+    T& lx() { return x.low(); }
+    T& ly() { return y.low(); }
+    T& hy() { return y.high(); }
+    T& hx() { return x.high(); }
     IntervalT<T>& operator[](unsigned i) {
         assert(i == 0 || i == 1);
-        return (i == 0) ? x_ : y_;
+        return (i == 0) ? x : y;
     }
     void Set() {
-        x_.Set();
-        y_.Set();
+        x.Set();
+        y.Set();
     }
-    void Set(T x, T y) {
-        x_.Set(x);
-        y_.Set(y);
+    void Set(T xVal, T yVal) {
+        x.Set(xVal);
+        y.Set(yVal);
     }
     void Set(const PointT<T>& pt) { Set(pt.x, pt.y); }
     void Set(T lx, T ly, T hx, T hy) {
-        x_.Set(lx, hx);
-        y_.Set(ly, hy);
+        x.Set(lx, hx);
+        y.Set(ly, hy);
     }
-    void Set(const IntervalT<T>& x, const IntervalT<T>& y) {
-        x_ = x;
-        y_ = y;
+    void Set(const IntervalT<T>& xRange, const IntervalT<T>& yRange) {
+        x = xRange;
+        y = yRange;
     }
     void Set(const PointT<T>& low, const PointT<T>& high) { Set(low.x, low.y, high.x, high.y); }
     void Set(const BoxT& box) { *this = box; }  // TODO: how to detect in ctor?
 
     // Two types of boxes: normal & degenerated (line or point)
     // is valid box
-    bool IsValid() const { return x_.IsValid() && y_.IsValid(); }
+    bool IsValid() const { return x.IsValid() && y.IsValid(); }
     // is strictly valid box (excluding degenerated ones)
-    bool IsStrictValid() const { return x_.IsStrictValid() && y_.IsStrictValid(); }  // tighter
+    bool IsStrictValid() const { return x.IsStrictValid() && y.IsStrictValid(); }  // tighter
 
     // Getters
-    T lx() const { return x_.low(); }
-    T ly() const { return y_.low(); }
-    T hy() const { return y_.high(); }
-    T hx() const { return x_.high(); }
-    T cx() const { return x_.center(); }
-    T cy() const { return y_.center(); }
-    T x() const { return x_.range(); }
-    T y() const { return y_.range(); }
+    T lx() const { return x.low(); }
+    T ly() const { return y.low(); }
+    T hy() const { return y.high(); }
+    T hx() const { return x.high(); }
+    T cx() const { return x.center(); }
+    T cy() const { return y.center(); }
+    T width() const { return x.range(); }
+    T height() const { return y.range(); }
     T hp() const { return x() + y(); }  // half perimeter
     T area() const { return x() * y(); }
     const IntervalT<T>& operator[](unsigned i) const {
         assert(i == 0 || i == 1);
-        return (i == 0) ? x_ : y_;
+        return (i == 0) ? x : y;
     }
 
     // Update() is always safe, FastUpdate() assumes existing values
     void Update(T x, T y) {
-        x_.Update(x);
-        y_.Update(y);
+        x.Update(x);
+        y.Update(y);
     }
     void FastUpdate(T x, T y) {
-        x_.FastUpdate(x);
-        y_.FastUpdate(y);
+        x.FastUpdate(x);
+        y.FastUpdate(y);
     }
     void Update(const PointT<T>& pt) { Update(pt.x, pt.y); }
     void FastUpdate(const PointT<T>& pt) { FastUpdate(pt.x, pt.y); }
 
     // Geometric Query/Update
-    BoxT UnionWith(const BoxT& rhs) const { return BoxT(x_.UnionWith(rhs.x_), y_.UnionWith(rhs.y_)); }
-    BoxT IntersectWith(const BoxT& rhs) const { return BoxT(x_.IntersectWith(rhs.x_), y_.IntersectWith(rhs.y_)); }
+    BoxT UnionWith(const BoxT& rhs) const { return BoxT(x.UnionWith(rhs.x), y.UnionWith(rhs.y)); }
+    BoxT IntersectWith(const BoxT& rhs) const { return BoxT(x.IntersectWith(rhs.x), y.IntersectWith(rhs.y)); }
     bool HasIntersectWith(const BoxT& rhs) const { return IntersectWith(rhs).IsValid(); }
     bool HasStrictIntersectWith(const BoxT& rhs) const {  // tighter
         return IntersectWith(rhs).IsStrictValid();
     }
     PointT<T> GetNearestPointTo(const PointT<T>& pt) {
-        return PointT<T>(x_.GetNearestPoint(pt.x), y_.GetNearestPoint(pt.y));
+        return PointT<T>(x.GetNearestPoint(pt.x), y.GetNearestPoint(pt.y));
     }
-    BoxT GetNearestPointsTo(BoxT val) const { return {x_.GetNearestPoints(val.x), y_.GetNearestPoints(val.y)}; }
+    BoxT GetNearestPointsTo(BoxT val) const { return {x.GetNearestPoints(val.x), y.GetNearestPoints(val.y)}; }
 
-    bool operator==(const BoxT& rhs) const { return (x_ == rhs.x) && (y_ == rhs.y_); }
+    bool operator==(const BoxT& rhs) const { return (x == rhs.x) && (y == rhs.y); }
     bool operator!=(const BoxT& rhs) const { return !(*this == rhs); }
 
     friend inline std::ostream& operator<<(std::ostream& os, const BoxT<T>& box) {
-        os << "[x: " << box[0] << ", y: " << box[1] << "]";
+        os << "[x: " << box.x << ", y: " << box.y << "]";
         return os;
     }
-
-private:
-    using limits = std::numeric_limits<T>;
-    IntervalT<T> x_, y_;
 };
 
 template <typename T>

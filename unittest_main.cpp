@@ -55,4 +55,27 @@ TEST_CASE("Interval/Box", "[intvl/box]") {
         REQUIRE(Dist(intvl1, intvl2) == numeric_limits<int>::max());
         REQUIRE(Dist(intvl2, intvl1) == numeric_limits<int>::max());
     }
+
+    SECTION("box ctor") {
+        BoxT<int> box;
+        REQUIRE(!box.IsValid());
+
+        BoxT<int> box1(4, 5);
+        BoxT<int> box2(PointT<int>(4, 5));
+        BoxT<int> box3(4, 5, 4, 5);
+        BoxT<int> box4(IntervalT<int>(4), IntervalT<int>(5));
+        BoxT<int> box5(PointT<int>(4, 5), PointT<int>(4, 5));
+        BoxT<int> box6(box5);
+        REQUIRE(box1 == box2);
+        REQUIRE(box1 == box3);
+        REQUIRE(box1 == box4);
+        REQUIRE(box1 == box5);
+        REQUIRE(box1 == box6);
+
+        BoxT<int> box7(4, 5, 6, 7);
+        BoxT<int> box8(IntervalT<int>(4, 6), IntervalT<int>(5, 7));
+        BoxT<int> box9(PointT<int>(4, 5), PointT<int>(6, 7));
+        REQUIRE(box7 == box8);
+        REQUIRE(box7 == box9);
+    }
 }
