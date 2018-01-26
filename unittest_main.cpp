@@ -77,5 +77,7 @@ TEST_CASE("Interval/Box", "[intvl/box]") {
         BoxT<int> box9(PointT<int>(4, 5), PointT<int>(6, 7));
         REQUIRE(box7 == box8);
         REQUIRE(box7 == box9);
+        REQUIRE(box9.lx() == 4);
+        REQUIRE(box9.area() == 4);
     }
 }

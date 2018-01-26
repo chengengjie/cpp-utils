@@ -172,10 +172,10 @@ public:
     }
 
     // Setters
-    T& lx() { return x.low(); }
-    T& ly() { return y.low(); }
-    T& hy() { return y.high(); }
-    T& hx() { return x.high(); }
+    T& lx() { return x.low; }
+    T& ly() { return y.low; }
+    T& hy() { return y.high; }
+    T& hx() { return x.high; }
     IntervalT<T>& operator[](unsigned i) {
         assert(i == 0 || i == 1);
         return (i == 0) ? x : y;
@@ -207,16 +207,16 @@ public:
     bool IsStrictValid() const { return x.IsStrictValid() && y.IsStrictValid(); }  // tighter
 
     // Getters
-    T lx() const { return x.low(); }
-    T ly() const { return y.low(); }
-    T hy() const { return y.high(); }
-    T hx() const { return x.high(); }
+    T lx() const { return x.low; }
+    T ly() const { return y.low; }
+    T hy() const { return y.high; }
+    T hx() const { return x.high; }
     T cx() const { return x.center(); }
     T cy() const { return y.center(); }
     T width() const { return x.range(); }
     T height() const { return y.range(); }
-    T hp() const { return x() + y(); }  // half perimeter
-    T area() const { return x() * y(); }
+    T hp() const { return width() + height(); }  // half perimeter
+    T area() const { return width() * height(); }
     const IntervalT<T>& operator[](unsigned i) const {
         assert(i == 0 || i == 1);
         return (i == 0) ? x : y;
