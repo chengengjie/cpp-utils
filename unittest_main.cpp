@@ -6,8 +6,8 @@ using namespace utils;
 using namespace std;
 
 TEST_CASE("Interval", "[intvl]") {
-    IntervalT<int> intvl1(0, 1);
-    IntervalT<int> intvl2(1, 0);
+    IntervalT<int> intvl1(0, 2);
+    IntervalT<int> intvl2(2, 0);
     IntervalT<int> intvl3(10, 12);
     IntervalT<int> intvl4(12, 10);
 
@@ -29,5 +29,13 @@ TEST_CASE("Interval", "[intvl]") {
                 }
             }
         }
+    }
+
+    SECTION("geo GetNearestPoints") {
+        REQUIRE(intvl1.GetNearestPoint(-1) == 0);
+        REQUIRE(intvl1.GetNearestPoint(1) == 1);
+        REQUIRE(intvl1.GetNearestPoint(3) == 2);
+        REQUIRE(intvl1.GetNearestPoints({1, 3}) == IntervalT<int>(1, 2));
+        REQUIRE(intvl1.GetNearestPoints({3, 4}) == IntervalT<int>(2, 2));
     }
 }

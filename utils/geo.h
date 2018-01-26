@@ -61,8 +61,10 @@ inline T LInfDist(const PointT<T>& pt1, const PointT<T>& pt2) {
 template <typename T>
 class IntervalT {
 public:
-    template<typename... Args>
-    IntervalT(Args... params) { Set(params...); }
+    template <typename... Args>
+    IntervalT(Args... params) {
+        Set(params...);
+    }
 
     // Setters
     T& low() { return low_; }
@@ -108,9 +110,12 @@ public:
     // Geometric Query/Update
     // interval/range of union (not union of intervals)
     IntervalT UnionWith(const IntervalT& rhs) const {
-        if (!IsValid()) return *this;
-        else if (!rhs.IsValid()) return rhs;
-        else return IntervalT(std::min(low_, rhs.low_), std::max(high_, rhs.high_));
+        if (!IsValid())
+            return *this;
+        else if (!rhs.IsValid())
+            return rhs;
+        else
+            return IntervalT(std::min(low_, rhs.low_), std::max(high_, rhs.high_));
     }
     // may return an invalid interval (as empty intersection)
     IntervalT IntersectWith(const IntervalT& rhs) const {
@@ -127,9 +132,17 @@ public:
         else
             return high_;
     }
+    IntervalT GetNearestPoints(IntervalT val) const {
+        if (val.high_ <= low_)
+            return {low_};
+        else if (val.low_ >= high_)
+            return {high_};
+        else
+            return IntersectWith(val);
+    }
 
     bool operator==(const IntervalT& rhs) const {
-        return (!IsValid() && !rhs.IsValid()) || (low_ == rhs.low_ && high_ == rhs.high_); 
+        return (!IsValid() && !rhs.IsValid()) || (low_ == rhs.low_ && high_ == rhs.high_);
     }
     bool operator!=(const IntervalT& rhs) const { return !(*this == rhs); }
 
@@ -147,8 +160,10 @@ inline std::ostream& operator<<(std::ostream& os, const IntervalT<T>& interval) 
 template <typename T>
 class BoxT {
 public:
-    template<typename... Args>
-    BoxT(Args... params) { Set(params...); }
+    template <typename... Args>
+    BoxT(Args... params) {
+        Set(params...);
+    }
 
     // Setters
     T& lx() { return x_.low(); }
@@ -177,7 +192,7 @@ public:
         y_ = y;
     }
     void Set(const PointT<T>& low, const PointT<T>& high) { Set(low.x, low.y, high.x, high.y); }
-    void Set(const BoxT& box) { *this = box; } // TODO: how to detect in ctor?
+    void Set(const BoxT& box) { *this = box; }  // TODO: how to detect in ctor?
 
     // Two types of boxes: normal & degenerated (line or point)
     // is valid box
@@ -223,10 +238,9 @@ public:
     PointT<T> GetNearestPoint(const PointT<T>& pt) {
         return PointT<T>(x_.GetNearestPoint(pt.x), y_.GetNearestPoint(pt.y));
     }
+    BoxT GetNearestPoints(BoxT val) const { return {x_.GetNearestPoints(val.x), y_.GetNearestPoints(val.y)}; }
 
-    bool operator==(const BoxT& rhs) const {
-        return (x_ == rhs.x) && (y_ == rhs.y_); 
-    }
+    bool operator==(const BoxT& rhs) const { return (x_ == rhs.x) && (y_ == rhs.y_); }
     bool operator!=(const BoxT& rhs) const { return !(*this == rhs); }
 
 private:
