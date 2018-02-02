@@ -16,7 +16,7 @@ template <typename T>
 class PointT {
 public:
     T x, y;
-    constexpr PointT(T xx = std::numeric_limits<T>::has_infinity ? std::numeric_limits<T>::infinity()
+    PointT(T xx = std::numeric_limits<T>::has_infinity ? std::numeric_limits<T>::infinity()
                                                                  : std::numeric_limits<T>::max(),
                      T yy = std::numeric_limits<T>::has_infinity ? std::numeric_limits<T>::infinity()
                                                                  : std::numeric_limits<T>::max())
@@ -79,7 +79,7 @@ public:
     }
 
     // Setters
-    constexpr void Set() {
+    void Set() {
         low = std::numeric_limits<T>::has_infinity ? std::numeric_limits<T>::infinity() : std::numeric_limits<T>::max();
         high = std::numeric_limits<T>::has_infinity ? -std::numeric_limits<T>::infinity()
                                                     : std::numeric_limits<T>::lowest();
