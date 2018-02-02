@@ -11,6 +11,7 @@ TEST_CASE("Point", "[pt]") {
 
     SECTION("point distance") {
         REQUIRE(Dist(pt1, pt2) == 30);
+        REQUIRE(L2Dist(pt1, pt2) == sqrt(500));
         REQUIRE(LInfDist(pt1, pt2) == 20);
     }
 }
@@ -100,5 +101,7 @@ TEST_CASE("Box", "[box]") {
         REQUIRE(Dist(boxA, PointT<int>(5, 13)) == 6);
         REQUIRE(Dist(boxA, boxB) == 16);
         REQUIRE(Dist(boxA, boxC) == 8);
+        REQUIRE(L2Dist(boxA, boxB) == sqrt(128));
+        REQUIRE(L2Dist(boxA, boxC) == 8);
     }
 }

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cassert>
+#include <cmath>
 #include <iostream>
 #include <limits>
 
@@ -15,8 +16,12 @@ template <typename T>
 class PointT {
 public:
     T x, y;
-    PointT(T xx = std::numeric_limits<T>::max(), T yy = std::numeric_limits<T>::max()) : x(xx), y(yy) {}
-    bool IsValid() { return x != std::numeric_limits<T>::max() && y != std::numeric_limits<T>::max(); }
+    constexpr PointT(T xx = std::numeric_limits<T>::has_infinity ? std::numeric_limits<T>::infinity()
+                                                                 : std::numeric_limits<T>::max(),
+                     T yy = std::numeric_limits<T>::has_infinity ? std::numeric_limits<T>::infinity()
+                                                                 : std::numeric_limits<T>::max())
+        : x(xx), y(yy) {}
+    bool IsValid() { return *this != PointT(); }
 
     // Operators
     T& operator[](unsigned d) {
@@ -44,10 +49,16 @@ public:
     }
 };
 
-// Manhattan distance between points
+// L-1 (Manhattan) distance between points
 template <typename T>
 inline T Dist(const PointT<T>& pt1, const PointT<T>& pt2) {
     return std::abs(pt1.x - pt2.x) + std::abs(pt1.y - pt2.y);
+}
+
+// L-2 (Euclidean) distance between points
+template <typename T>
+inline double L2Dist(const PointT<T>& pt1, const PointT<T>& pt2) {
+    return std::sqrt(std::pow(pt1.x - pt2.x, 2) + std::pow(pt1.y - pt2.y, 2));
 }
 
 // L-inf distance between points
@@ -68,9 +79,10 @@ public:
     }
 
     // Setters
-    void Set() {
-        low = std::numeric_limits<T>::max();
-        high = std::numeric_limits<T>::lowest();
+    constexpr void Set() {
+        low = std::numeric_limits<T>::has_infinity ? std::numeric_limits<T>::infinity() : std::numeric_limits<T>::max();
+        high = std::numeric_limits<T>::has_infinity ? -std::numeric_limits<T>::infinity()
+                                                    : std::numeric_limits<T>::lowest();
     }
     void Set(T val) {
         low = val;
@@ -120,28 +132,33 @@ public:
     }
     bool HasIntersectWith(const IntervalT& rhs) const { return IntersectWith(rhs).IsValid(); }
     bool HasStrictIntersectWith(const IntervalT& rhs) const { return IntersectWith(rhs).IsStrictValid(); }
+
+    bool Contain(int val) const { return val >= low && val <= high; }
+    bool StrictlyContain(int val) const { return val > low && val < high; }
+
     // get nearest point to val (assume valid intervals)
     T GetNearestPointTo(T val) const {
         if (val <= low) {
             return low;
-        }
-        else if (val >= high) {
+        } else if (val >= high) {
             return high;
-        }
-        else {
+        } else {
             return val;
         }
     }
     IntervalT GetNearestPointsTo(IntervalT val) const {
         if (val.high <= low) {
             return {low};
-        }
-        else if (val.low >= high) {
+        } else if (val.low >= high) {
             return {high};
-        }
-        else {
+        } else {
             return IntersectWith(val);
         }
+    }
+
+    void ShiftBy(const T& rhs) {
+        low += rhs;
+        high += rhs;
     }
 
     // Operators
@@ -161,14 +178,16 @@ template <typename T>
 inline T Dist(const IntervalT<T>& intvl, const T val) {
     return std::abs(intvl.GetNearestPointTo(val) - val);
 }
+
 template <typename T>
 inline T Dist(const IntervalT<T>& int1, const IntervalT<T>& int2) {
-    if (int1.high <= int2.low)
+    if (int1.high <= int2.low) {
         return int2.low - int1.high;
-    else if (int1.low >= int2.high)
+    } else if (int1.low >= int2.high) {
         return int1.low - int2.high;
-    else
+    } else {
         return 0;
+    }
 }
 
 // Box template
@@ -234,13 +253,13 @@ public:
     }
 
     // Update() is always safe, FastUpdate() assumes existing values
-    void Update(T x, T y) {
-        x.Update(x);
-        y.Update(y);
+    void Update(T xVal, T yVal) {
+        x.Update(xVal);
+        y.Update(yVal);
     }
-    void FastUpdate(T x, T y) {
-        x.FastUpdate(x);
-        y.FastUpdate(y);
+    void FastUpdate(T xVal, T yVal) {
+        x.FastUpdate(xVal);
+        y.FastUpdate(yVal);
     }
     void Update(const PointT<T>& pt) { Update(pt.x, pt.y); }
     void FastUpdate(const PointT<T>& pt) { FastUpdate(pt.x, pt.y); }
@@ -255,6 +274,11 @@ public:
     PointT<T> GetNearestPointTo(const PointT<T>& pt) { return {x.GetNearestPointTo(pt.x), y.GetNearestPointTo(pt.y)}; }
     BoxT GetNearestPointsTo(BoxT val) const { return {x.GetNearestPointsTo(val.x), y.GetNearestPointsTo(val.y)}; }
 
+    void ShiftBy(const PointT<T>& rhs) {
+        x.ShiftBy(rhs.x);
+        y.ShiftBy(rhs.y);
+    }
+
     bool operator==(const BoxT& rhs) const { return (x == rhs.x) && (y == rhs.y); }
     bool operator!=(const BoxT& rhs) const { return !(*this == rhs); }
 
@@ -264,7 +288,7 @@ public:
     }
 };
 
-// Manhattan distance between boxes/points (assume valid boxes)
+// L-1 (Manhattan) distance between boxes/points (assume valid boxes)
 template <typename T>
 inline T Dist(const BoxT<T>& box, const PointT<T>& point) {
     return Dist(box.x, point.x) + Dist(box.y, point.y);
@@ -272,6 +296,12 @@ inline T Dist(const BoxT<T>& box, const PointT<T>& point) {
 template <typename T>
 inline T Dist(const BoxT<T>& box1, const BoxT<T>& box2) {
     return Dist(box1.x, box2.x) + Dist(box1.y, box2.y);
+}
+
+// L-2 (Euclidean) distance between boxes
+template <typename T>
+inline double L2Dist(const BoxT<T>& box1, const BoxT<T>& box2) {
+    return std::sqrt(std::pow(Dist(box1.x, box2.x), 2) + std::pow(Dist(box1.y, box2.y), 2));
 }
 
 template <typename T>
