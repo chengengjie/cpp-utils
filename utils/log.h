@@ -37,7 +37,8 @@ std::ostream& operator<<(std::ostream& os, const timer& t);
 
 class mem_use {
 public:
-    static double get();  // MB
+    static double get_current();  // MB
+    static double get_peak();     // MB
 };
 
 // 3. Easy print
@@ -60,4 +61,4 @@ void printlog(T... t) {
     print(t...);
 }
 
-}
+}  // namespace utils

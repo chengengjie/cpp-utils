@@ -4,8 +4,8 @@
 #include <sstream>
 
 #if defined(__unix__)
-#include <unistd.h>
 #include <sys/resource.h>
+#include <unistd.h>
 #elif defined(_WIN32)
 #include <windows.h>
 #include <psapi.h>
@@ -26,24 +26,39 @@ std::ostream& operator<<(std::ostream& os, const timer& t) {
     return os;
 }
 
-double mem_use::get() {
+double mem_use::get_current() {
 #if defined(__unix__)
     long rss = 0L;
     FILE* fp = NULL;
     if ((fp = fopen("/proc/self/statm", "r")) == NULL) {
-        return 0; /* Can't open? */
+        return 0.0; /* Can't open? */
     }
     if (fscanf(fp, "%*s%ld", &rss) != 1) {
         fclose(fp);
-        return 0; /* Can't read? */
+        return 0.0; /* Can't read? */
     }
     fclose(fp);
     return rss * sysconf(_SC_PAGESIZE) / 1048576.0;
-
 #elif defined(_WIN32)
     PROCESS_MEMORY_COUNTERS info;
     GetProcessMemoryInfo(GetCurrentProcess(), &info, sizeof(info));
     return info.WorkingSetSize / 1048576.0;
+#else
+    return 0.0;  // unknown
+#endif
+}
+
+double mem_use::get_peak() {
+#if defined(__unix__)
+    struct rusage rusage;
+    getrusage(RUSAGE_SELF, &rusage);
+    return rusage.ru_maxrss / 1024.0;
+#elif defined(_WIN32)
+    PROCESS_MEMORY_COUNTERS info;
+    GetProcessMemoryInfo(GetCurrentProcess(), &info, sizeof(info));
+    return info.PeakWorkingSetSize / 1048576.0;
+#else
+    return 0.0;  // unknown
 #endif
 }
 

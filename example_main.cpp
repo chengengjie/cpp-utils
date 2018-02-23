@@ -26,9 +26,13 @@ int main() {
     utils::print(a, b, c);
     utils::log() << "From now on, there is a time stamp in each line of log" << std::endl;
     utils::printlog("E.g.,", a, b, c);
-    int memStart = utils::mem_use::get();
-    std::vector<int> manyNums(1000000);
-    utils::printlog("A vector of 1000000 int takes", utils::mem_use::get() - memStart, "MB memory");
+    {
+        int memStart = utils::mem_use::get_current();
+        std::vector<int> manyNums(1000000);
+        utils::printlog("A vector of 1000000 int takes", utils::mem_use::get_current() - memStart, "MB memory");
+        utils::printlog("Memory: cur =", utils::mem_use::get_current(), "peak =", utils::mem_use::get_peak());
+    }
+    utils::printlog("Memory: cur =", utils::mem_use::get_current(), "peak =", utils::mem_use::get_peak());
 
     // 4. geo + prettyprint + log
     utils::printlog();
