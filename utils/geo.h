@@ -120,9 +120,9 @@ public:
     // interval/range of union (not union of intervals)
     IntervalT UnionWith(const IntervalT& rhs) const {
         if (!IsValid())
-            return *this;
-        else if (!rhs.IsValid())
             return rhs;
+        else if (!rhs.IsValid())
+            return *this;
         else
             return IntervalT(std::min(low, rhs.low), std::max(high, rhs.high));
     }
@@ -228,7 +228,6 @@ public:
         y = yRange;
     }
     void Set(const PointT<T>& low, const PointT<T>& high) { Set(low.x, low.y, high.x, high.y); }
-    void Set(const BoxT& box) { *this = box; }  // TODO: how to detect in ctor?
 
     // Two types of boxes: normal & degenerated (line or point)
     // is valid box
@@ -304,9 +303,76 @@ inline double L2Dist(const BoxT<T>& box1, const BoxT<T>& box2) {
     return std::sqrt(std::pow(Dist(box1.x, box2.x), 2) + std::pow(Dist(box1.y, box2.y), 2));
 }
 
+// Merge/stitch overlapped rectangles along mergeDir
+// mergeDir: 0 for x/vertical, 1 for y/horizontal
+// use BoxT instead of T & BoxT<T> to make it more general
+template <typename BoxT>
+void MergeRects(std::vector<BoxT>& boxes, int mergeDir) {
+    int boundaryDir = 1 - mergeDir;
+    std::sort(boxes.begin(), boxes.end(), [&](const BoxT& lhs, const BoxT& rhs) {
+        return lhs[boundaryDir].low < rhs[boundaryDir].low ||
+               (lhs[boundaryDir].low == rhs[boundaryDir].low && lhs[mergeDir].low < rhs[mergeDir].low);
+    });
+    std::vector<BoxT> mergedBoxes;
+    mergedBoxes.push_back(boxes.front());
+    for (int i = 1; i < boxes.size(); ++i) {
+        auto& lastBox = mergedBoxes.back();
+        auto& slicedBox = boxes[i];
+        if (slicedBox[boundaryDir] == lastBox[boundaryDir] &&
+            slicedBox[mergeDir].low <= lastBox[mergeDir].high) {  // aligned and intersected
+            lastBox[mergeDir] = lastBox[mergeDir].UnionWith(slicedBox[mergeDir]);
+        } else {  // neither misaligned not seperated
+            mergedBoxes.push_back(slicedBox);
+        }
+    }
+    boxes = move(mergedBoxes);
+}
+
+// Slice polygons along sliceDir
+// sliceDir: 0 for x/vertical, 1 for y/horizontal
+// assume no degenerated case
+template <typename T>
+void SlicePolygons(std::vector<BoxT<T>>& boxes, int sliceDir) {
+    // Line sweep in sweepDir = 1 - sliceDir
+    // Suppose sliceDir = y and sweepDir = x (sweep from left to right)
+    // Not scalable impl (brute force interval query) but fast for small case
+    if (boxes.size() <= 1) return;
+
+    // sort slice lines in sweepDir
+    int sweepDir = 1 - sliceDir;
+    std::vector<T> locs;
+    for (const auto& box : boxes) {
+        locs.push_back(box[sweepDir].low);
+        locs.push_back(box[sweepDir].high);
+    }
+    std::sort(locs.begin(), locs.end());
+    locs.erase(std::unique(locs.begin(), locs.end()), locs.end());
+
+    // slice each box
+    std::vector<BoxT<T>> slicedBoxes;
+    for (const auto& box : boxes) {
+        BoxT<T> slicedBox = box;
+        auto itLoc = std::lower_bound(locs.begin(), locs.end(), box[sweepDir].low);
+        auto itEnd = std::upper_bound(itLoc, locs.end(), box[sweepDir].high);
+        while ((itLoc + 1) != itEnd) {
+            slicedBox[sweepDir].Set(*itLoc, *(itLoc + 1));
+            slicedBoxes.push_back(slicedBox);
+            ++itLoc;
+        }
+    }
+    boxes = move(slicedBoxes);
+
+    // merge overlaped boxes along slice dir
+    MergeRects(boxes, sliceDir);
+
+    // stitch boxes along sweep dir
+    MergeRects(boxes, sweepDir);
+}
+
 template <typename T>
 class SegmentT : public BoxT<T> {
 public:
+    using BoxT<T>::BoxT;
     T length() const { return BoxT<T>::hp(); }
     bool IsRectilinear() const { return BoxT<T>::x() == 0 || BoxT<T>::y() == 0; }
 };

@@ -34,10 +34,11 @@ TEST_CASE("Interval", "[intvl]") {
         for (int i = 0; i < intvls.size(); ++i) {
             for (int j = i; j < intvls.size(); ++j) {
                 if (!intvls[i].IsValid() || !intvls[j].IsValid()) {
+                    // at least one invalid
                     REQUIRE(!intvls[i].IntersectWith(intvls[j]).IsValid());
                     REQUIRE(!intvls[i].HasIntersectWith(intvls[j]));
-                    REQUIRE(!intvls[i].UnionWith(intvls[j]).IsValid());
                 }
+                REQUIRE(intvls[i].UnionWith(intvls[j]).IsValid() == (intvls[i].IsValid() || intvls[j].IsValid()));
             }
         }
     }
@@ -103,5 +104,14 @@ TEST_CASE("Box", "[box]") {
         REQUIRE(Dist(boxA, boxC) == 8);
         REQUIRE(L2Dist(boxA, boxB) == sqrt(128));
         REQUIRE(L2Dist(boxA, boxC) == 8);
+    }
+
+    BoxT<int> boxD(5, 6, 15, 16);
+    BoxT<int> boxE(9, 100, 10, 102);
+
+    SECTION("slice polygons") {
+        vector<BoxT<int>> boxes = {boxA, boxB, boxD, boxE};
+        SlicePolygons(boxes, 1);
+        REQUIRE(boxes.size() == 6);
     }
 }
